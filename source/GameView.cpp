@@ -188,11 +188,11 @@ namespace GGE
 
         w += 0.01;
 
-        go->setOrientation((Quaternion){0., 1., 0., w*100});
+        go->setOrientation(Quaternion(0., 1., 0., w*100));
 
-        go->setScale((Vector3) {(float) sin(w), (float) sin(w), (float)sin(w)});
+        go->setScale(Vector3((float) sin(w), (float) sin(w), (float)sin(w)));
 
-        go->setPosition((Vector3) {(float) sin(w), go->getPosition().y, go->getPosition().z});
+        go->setPosition(Vector3((float) sin(w), go->getPosition().y, go->getPosition().z));
 
         if (exitButton->isClicked(mouseCoord))
         {

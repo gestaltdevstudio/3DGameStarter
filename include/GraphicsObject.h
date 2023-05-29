@@ -28,8 +28,8 @@ namespace GGE {
             inline void setAlpha(const float _alpha) { alpha=_alpha; }
             inline float getAlpha() { return alpha; }
             inline Vector3 getPosition() { return position; }
-            inline void setRenderOrder(const uint _renderOrder) { renderOrder = _renderOrder; }
-            inline uint getRenderOrder() {return renderOrder;}
+            inline void setRenderOrder(const unsigned int _renderOrder) { renderOrder = _renderOrder; }
+            inline unsigned int getRenderOrder() {return renderOrder;}
             inline Entity* getEntity() { return entity;}
             inline void setEntity(Entity* _entity) { entity = _entity;}
 
@@ -41,7 +41,7 @@ namespace GGE {
             Vector4 color;
             bool    visible;
             float   alpha;
-            uint    renderOrder;
+            unsigned int  renderOrder;
             Entity  *entity;
     };
 
