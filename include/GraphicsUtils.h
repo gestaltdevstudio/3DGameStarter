@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "Resources.h"
+#include "Camera2D.h"
 
 namespace GGE {
 
@@ -20,6 +21,8 @@ namespace GGE {
                 std::vector<glm::vec3> & out_vertices,
                 std::vector<glm::vec2> & out_uvs,
                 std::vector<glm::vec3> & out_normals);
+
+          static glm::mat4 buildViewProj(const Camera2D& cam);
     };
 
 }

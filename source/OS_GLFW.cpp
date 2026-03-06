@@ -2,6 +2,7 @@
 #if defined(__WIN32__)
 #include <algorithm>
 #endif
+#include <cstring>
 
 #ifndef None
 #define None                 0L
@@ -187,7 +188,7 @@ namespace GGE
     void OS::resizeWindow()
     {
         Point windowSize = getWindowSize();
-        Graphics::getInstance()->renderResize(windowSize);
+        GraphicsManager::getInstance()->onFramebufferResize(windowSize.x, windowSize.y);
     }
 
     bool OS::getRunning()

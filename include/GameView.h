@@ -7,6 +7,7 @@
 #include "Text.h"
 #include "Button.h"
 #include "GameModel.h"
+#include "Camera2D.h"
 #include "GraphicsObjectGL.h"
 
 namespace GGE
@@ -23,16 +24,20 @@ namespace GGE
 
         protected:
             GameModel *gameModel;
-            GraphicsObject *go;
-            TextureAtlas *ta;
-            Shader *sh, *sh3D;
+            //GraphicsObject *go;
+            TextureAtlas *atlas;
+            Shader *shader, *sh3D;
             Sprite *playerSprite;
             Sprite *s2;
             Shader *textSh;
             Font *f;
             Text *t;
             Button *exitButton;
+//            Drawable *quad;
             float w;
+            bool animationsPaused;
+
+            Camera2D camera;
 
 #if !defined(GGE_DESKTOP)
             Button *leftButton;

@@ -23,7 +23,7 @@ namespace GGE
 
         int width, height, format;
 
-        stbi_set_flip_vertically_on_load(true);
+        stbi_set_flip_vertically_on_load(false);
         unsigned char * data = stbi_load_from_memory((unsigned char*)fileBuffer->file, fileBuffer->size, &width, &height, &format, STBI_rgb_alpha);
 
 		glGenTextures(1,&imageID);
@@ -196,4 +196,32 @@ namespace GGE
 
         }
     }
+    glm::mat4 GraphicsUtils::buildViewProj(const Camera2D& cam)
+    {
+        glm::mat4 proj = glm::ortho(
+            -cam.getWidth()  * 0.5f,
+             cam.getWidth()  * 0.5f,
+            -cam.getHeight() * 0.5f,
+             cam.getHeight() * 0.5f,
+            -1.0f, 1.0f
+        );
+
+      glm::mat4 view = glm::mat4(1.0f);
+
+
+        view = glm::translate(
+            view,
+            glm::vec3(-cam.getX(), -cam.getY(), 0.0f)
+        );
+
+        view = glm::scale(
+            view,
+            glm::vec3(1.0f / cam.getZoom(),
+                      1.0f / cam.getZoom(),
+                      1.0f)
+        );
+
+        return proj * view;
+    }
+
 }
