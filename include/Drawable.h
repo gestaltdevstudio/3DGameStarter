@@ -24,7 +24,7 @@ namespace GGE
         inline Shader *getShader() { return shader; };
         inline AtlasRegion* getAtlasRegion() { return atlasRegion; }
         inline TextureAtlas* getTextureAtlas() { return textureAtlas; }
-        inline bool isVisible() { return visible; }
+        inline bool isVisible() const { return visible; }
 
         inline void setX(float _x) { x = _x; };
         inline void setY(float _y) { y = _y; };

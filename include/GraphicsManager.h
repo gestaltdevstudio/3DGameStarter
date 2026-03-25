@@ -2,11 +2,18 @@
 #define GRAPHICSMANAGER_H_INCLUDED
 
 #include <vector>
+#include <string>
+#include <memory>
 #include "Definitions.h"
 #include "RendererBatch2D.h"
 
 namespace GGE
 {
+class Render2DPass;
+class RenderTarget;
+class Camera2D;
+class Shader;
+class Drawable;
 
 struct Viewport
 {
@@ -47,6 +54,12 @@ public:
 
     void bindFramebuffer(unsigned int fbo);
 
+    // render batch API (claro e nítido)
+    void clear2DDrawables();
+    void add2DDrawable(Drawable* drawable);
+    void set2DPipeline(Render2DPass* pipeline);
+    void render2DDrawables(const Camera2D& camera, Shader& shader, RenderTarget* target = nullptr);
+
     // resize vindo do GLFW
     void onFramebufferResize(int w, int h);
 
@@ -57,6 +70,9 @@ public:
 
 private:
     RendererBatch2D batch;
+    std::unique_ptr<Render2DPass> active2DPass;
+    std::vector<Drawable*> queued2DDrawables;
+
     GraphicsManager() = default;
 
     static GraphicsManager* instance;

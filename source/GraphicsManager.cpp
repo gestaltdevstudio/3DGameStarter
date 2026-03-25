@@ -1,5 +1,11 @@
 #include "../include/GraphicsManager.h"
 #include "../include/GraphicsUtils.h"
+#include "../include/Render2DPass.h"
+#include "../include/TextureRenderTarget.h"
+#include "../include/RenderTarget.h"
+#include "../include/Camera2D.h"
+#include "../include/Shader.h"
+#include "../include/Drawable.h"
 
 #include <glad/glad.h>
 
@@ -61,6 +67,48 @@ void GraphicsManager::bindFramebuffer(unsigned int fbo)
 {
     currentFBO = fbo;
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+}
+
+void GraphicsManager::clear2DDrawables()
+{
+    queued2DDrawables.clear();
+}
+
+void GraphicsManager::add2DDrawable(Drawable* drawable)
+{
+    if (!drawable)
+        return;
+    queued2DDrawables.push_back(drawable);
+}
+
+void GraphicsManager::set2DPipeline(Render2DPass* pipeline)
+{
+    if (!pipeline)
+        return;
+    active2DPass.reset(pipeline);
+}
+
+void GraphicsManager::render2DDrawables(const Camera2D& camera, Shader& shader, RenderTarget* target)
+{
+    if (active2DPass)
+    {
+        RenderTarget* resolvedTarget = target;
+        if (!resolvedTarget)
+            resolvedTarget = active2DPass->getTarget();
+
+        active2DPass->render(camera, shader, queued2DDrawables, resolvedTarget);
+        active2DPass->presentToScreen();
+        return;
+    }
+
+    // fallback sem pipeline injetado
+    Render2DPass localPass(currentViewport.width, currentViewport.height);
+    RenderTarget* resolvedTarget = target;
+    if (!resolvedTarget)
+        resolvedTarget = localPass.getTarget();
+
+    localPass.render(camera, shader, queued2DDrawables, resolvedTarget);
+    localPass.presentToScreen();
 }
 
 void GraphicsManager::onFramebufferResize(int w, int h)

@@ -1,4 +1,5 @@
 #include "../include/GGEGame.h"
+#include "../include/UnitTests.h"
 
 namespace GGE
 {

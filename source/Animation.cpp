@@ -28,11 +28,16 @@ namespace GGE
         shader = _shader;
         textureAtlas = _textureAtlas;
         frameDuration = _frameDuration;
-        for(std::vector<std::string>::iterator it = _framesNames.begin(); it != _framesNames.end(); ++it) {
-            std::string name = *it;
-            Drawable *drawable = new Drawable();
+        for (const std::string& name : _framesNames) {
+            Drawable* drawable = new Drawable();
             drawable->loadRegion(name, textureAtlas);
             drawable->setShader(shader);
+            drawable->setIsVisible(true); // frames individuais devem ser visíveis
+            drawable->setX(0.0f);
+            drawable->setY(0.0f);
+            drawable->setScaleX(1.0f);
+            drawable->setScaleY(1.0f);
+            drawable->setAlpha(1.0f);
             frames.push_back(drawable);
         }
 
@@ -43,7 +48,6 @@ namespace GGE
         unsigned int frameIndex = (int) (elapsedTime / frameDuration);
         switch(playMode)
         {
-
             case ANIM_NORMAL:
 
                 frameIndex = std::min((int)frames.size() - 1, (int) frameIndex);
@@ -60,7 +64,6 @@ namespace GGE
                 if (frameIndex >= frames.size()) frameIndex = frames.size() - 2 - (frameIndex - frames.size());
 
             break;
-
         }
         return frames[frameIndex];
     }

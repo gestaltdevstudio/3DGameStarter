@@ -2,12 +2,9 @@
 
 int main()
 {
+    GGE::Game* game = new GGE::Game();
+    game->play();
+    delete game;
 
-	GGE::Game *game = new GGE::Game();
-
-	game->play();
-
-	delete game;
-
-	return 0;
+    return 0;
 }

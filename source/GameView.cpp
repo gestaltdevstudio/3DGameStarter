@@ -1,5 +1,5 @@
 #include "../include/GameView.h"
-#include "../include/GraphicsManager.h"
+#include "../include/Render2DPass.h"
 
 namespace GGE
 {
@@ -76,76 +76,53 @@ namespace GGE
 //        quad->setAlpha(1.0);
 
         GraphicsManager* gm = GraphicsManager::getInstance();
-
         gm->getCurrentBatch()->init(20);
+
+        // Configura pipeline de render 2D no gerenciador. A GameView não controla o ciclo GL.
+        gm->set2DPipeline(new Render2DPass(1920, 1080));
     }
 
     void GameView::step(float deltaTime)
     {
+        if (!shader)
+            return;
 
-            GraphicsManager* gm = GraphicsManager::getInstance();
-            gm->beginFrame();
-            gm->getCurrentBatch()->begin();
-            gm->getCurrentBatch()->setShader(shader);
-            shader->bind();
-
-            Drawable *quad;
+        // === FASE 1: Atualizar estado do sprite (do model) ===
+        // (lê do model, atualiza posição/visibilidade/z)
+        if (!animationsPaused && playerSprite)
+        {
             if (!playerSprite->getCurrentAnimationName().empty())
             {
-                if (!animationsPaused) {
-                    playerSprite->getCurrentAnimation()->update(deltaTime);
-                }
-                quad = playerSprite->getCurrentAnimation()->getCurrentDrawable(playerSprite->getAnimationPlayMode());
+                playerSprite->getCurrentAnimation()->update(deltaTime);
             }
-            else
-            {
-                quad = reinterpret_cast<Drawable*>(playerSprite);
-            }
+        }
 
+        // === FASE 2: Renderizar (pipeline isolada) ===
+        std::vector<Drawable*> drawList;
+        Drawable* quad = nullptr;
 
-//        if (quad->isVisible()) {
+        if (playerSprite && !playerSprite->getCurrentAnimationName().empty())
+        {
+            quad = playerSprite->getCurrentAnimation()->getCurrentDrawable(
+                playerSprite->getAnimationPlayMode()
+            );
+        }
+        else if (playerSprite)
+        {
+            quad = reinterpret_cast<Drawable*>(playerSprite);
+        }
 
+        if (quad && quad->isVisible())
+            drawList.push_back(quad);
 
-            const AtlasRegion* r = quad->getAtlasRegion();
+        // Enfileirar drawables no GraphicsManager.
+        GraphicsManager* gm = GraphicsManager::getInstance();
+        gm->clear2DDrawables();
+        for (Drawable* d : drawList)
+            gm->add2DDrawable(d);
 
-            InstanceData2D       inst;
-            inst.position     = glm::vec2 { quad->getX(), quad->getY() };
-            inst.size        = glm::vec2 { quad->getScaleX() * r->width, quad->getScaleY() * r->height };
-            inst.size.x *= quad->isFlippedX() ? -1 : 1;
-            inst.size.y *= quad->isFlippedY() ? -1 : 1;
-            inst.rotation     = quad->getRotation();
-            inst.z            = quad->getZ();
-            inst.textureIndex = gm->getCurrentBatch()->getTextureSlot(quad->getTextureAtlas()->textureID);
-
-            const TextureAtlas* t = quad->getTextureAtlas();
-            float u0 = (float) r->x / t->width;
-            float v0 = (float) r->y / t->height;
-
-            float u1 = (float) (r->x + r->width)  / t->width;
-            float v1 = (float) (r->y + r->height) / t->height;
-
-            inst.uv       = glm::vec4 { u0, v0, u1 - u0, v1 - v0};
-            float *color = quad->getColor();
-            inst.color    = glm::vec4 { color[0], color[1], color[2], color[3]};
-            inst.alpha    = quad->getAlpha();
-
-
-            shader->setMat4("u_ViewProj", GraphicsUtils::buildViewProj(camera));
-
-            gm->submit(inst);
-
-            gm->getCurrentBatch()->flush();
-            gm->endFrame();
-
-GLenum err;
-    if ((err = glGetError()) != GL_NO_ERROR) {
-        // Tratamento de erro (ex: imprimir no console)
-        std::cout << "OpenGL error: " << err << std::endl;
-    }
-
-//        }
-
-//        GraphicsManager::getInstance()->renderFrame(deltaTime);
+        // Delegar ao GraphicsManager a renderização real (pipeline + FBO).
+        gm->render2DDrawables(camera, *shader);
     }
 
     void GameView::finishView()
