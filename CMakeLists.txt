@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 2.6)
-project (Starter)
+cmake_minimum_required(VERSION 3.16...4.3)   # mínimo 3.16, máximo 4.3
+project(Starter)
 
 set(CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -25,7 +25,6 @@ endif (MSVC)
 
 include_directories(${CPP_DIR}/include ${CPP_DIR}/include/external/libzip ${CPP_DIR}/include/external)
 file(GLOB SOURCES "${CPP_DIR}/main.cpp" "${CPP_DIR}/source/*.cpp" "${CPP_DIR}/source/external/*.c")
-list(REMOVE_ITEM SOURCES "${CPP_DIR}/source/Renderer2D.cpp")
 
 if (UNIX AND NOT APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
