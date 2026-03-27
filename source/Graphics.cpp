@@ -310,7 +310,8 @@ namespace GGE
                 GLuint mvpID = glGetUniformLocation(text->getShader()->getShaderID(), "MVP");
                 glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
 
-                text->printText();
+                // TODO: Legacy code — use GraphicsManager::renderText() instead
+                // text->printText();
                 glUseProgram(0);
             }
 

@@ -6,9 +6,11 @@
 #include <memory>
 #include "Definitions.h"
 #include "RendererBatch2D.h"
+#include "TextRenderer.h"
 
 namespace GGE
 {
+class Text;
 class Render2DPass;
 class RenderTarget;
 class Camera2D;
@@ -59,6 +61,7 @@ public:
     void add2DDrawable(Drawable* drawable);
     void set2DPipeline(Render2DPass* pipeline);
     void render2DDrawables(const Camera2D& camera, Shader& shader, RenderTarget* target = nullptr);
+    void renderText(Text* text, Camera2D* camera);
 
     // resize vindo do GLFW
     void onFramebufferResize(int w, int h);
@@ -72,6 +75,7 @@ private:
     RendererBatch2D batch;
     std::unique_ptr<Render2DPass> active2DPass;
     std::vector<Drawable*> queued2DDrawables;
+    TextRenderer textRenderer;
 
     GraphicsManager() = default;
 

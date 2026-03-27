@@ -111,6 +111,11 @@ void GraphicsManager::render2DDrawables(const Camera2D& camera, Shader& shader, 
     localPass.presentToScreen();
 }
 
+void GraphicsManager::renderText(Text* text, Camera2D* camera)
+{
+    textRenderer.render(text, camera);
+}
+
 void GraphicsManager::onFramebufferResize(int w, int h)
 {
     surface.screenSize = { w, h };

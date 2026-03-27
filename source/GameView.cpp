@@ -1,5 +1,6 @@
 #include "../include/GameView.h"
 #include "../include/Render2DPass.h"
+#include "../include/Text.h"
 
 namespace GGE
 {
@@ -26,6 +27,26 @@ namespace GGE
 
         delete atlasFile;
         delete imageFile;
+
+        // Load font
+        f = new Font();
+        const resourceFile* fontFile = Resources::getInstance()->loadCompressedFile("pressStart2P.fnt");
+        f->loadFont(fontFile);
+        delete fontFile;
+
+        // Load text shader
+        textSh = new Shader();
+        const resourceFile* tvs = Resources::getInstance()->loadCompressedFile("textShader.vert");
+        const resourceFile* tfs = Resources::getInstance()->loadCompressedFile("textShader.frag");
+        textSh->setShaderID(GraphicsUtils::loadShaders(tvs, tfs));
+        delete tvs;
+        delete tfs;
+
+        // Create text
+        t = new Text();
+        t->initText("testText", f, textSh, "pressStart2P", atlas, -400, 200);  // baseline at center
+        t->setText("HELLO");
+        t->setVisible(true);
 
         shader = new Shader();
 
@@ -115,6 +136,10 @@ namespace GGE
         if (quad && quad->isVisible())
             drawList.push_back(quad);
 
+        // Add text if visible - but render separately since it uses different shader
+//        if (t && t->isVisible())
+//            drawList.push_back(t);
+
         // Enfileirar drawables no GraphicsManager.
         GraphicsManager* gm = GraphicsManager::getInstance();
         gm->clear2DDrawables();
@@ -123,6 +148,10 @@ namespace GGE
 
         // Delegar ao GraphicsManager a renderização real (pipeline + FBO).
         gm->render2DDrawables(camera, *shader);
+
+        // Render text separately on top
+        if (t && t->isVisible())
+            gm->renderText(t, &camera);
     }
 
     void GameView::finishView()
@@ -130,6 +159,9 @@ namespace GGE
         delete playerSprite;
         delete shader;
         delete atlas;
+        delete f;
+        delete textSh;
+        delete t;
     }
 
 }

@@ -157,7 +157,7 @@ namespace GGE
             GL_DYNAMIC_DRAW
         );
 
-        std::size_t offset = 0;
+//        std::size_t offset = 0;
 
         // position
         glEnableVertexAttribArray(1);
