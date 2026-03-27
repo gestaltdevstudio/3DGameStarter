@@ -1,83 +1,65 @@
 #include "../include/GameView.h"
+#include "../include/Render2DPass.h"
+#include "../include/Text.h"
 
 namespace GGE
 {
 
-    GameView::GameView(Screen *_screen, GameModel *_gameModel) : View(_screen)
+    GameView::GameView(Screen* screen, GameModel* model)
+        : View(screen), gameModel(model)
     {
-        gameModel = _gameModel;
     }
 
     void GameView::initView()
     {
+        atlas = new TextureAtlas();
+        camera.setSize(1920, 1080); // área útil do jogo
+        camera.setPosition(0.0f, 0.0f);
+        camera.setZoom(1.0f);
 
-        sh3D = new Shader();
-        const resourceFile *rf3DVertShader = Resources::getInstance()->loadCompressedFile("3DShader.vert");
-        const resourceFile *rf3DFragShader = Resources::getInstance()->loadCompressedFile("3DShader.frag");
-        sh3D->setShaderID(GraphicsUtils::loadShaders(rf3DVertShader, rf3DFragShader));
-        if (!sh3D->getShaderID())
-            return;
+        animationsPaused = false;
+        const resourceFile* atlasFile =
+            Resources::getInstance()->loadCompressedFile("game.atlas");
+        const resourceFile* imageFile =
+            Resources::getInstance()->loadCompressedFile("game.png");
 
-        delete rf3DVertShader;
-        delete rf3DFragShader;
+        atlas->loadTextureAtlas(atlasFile, imageFile);
 
-        go = (GraphicsObject*) new GraphicsObjectGL(sh3D);
-        std::vector<Vector3> cubeVertices;
-        cubeVertices.push_back({-1.0, -1.0, 1.0}); //0
-        cubeVertices.push_back({1.0, -1.0, 1.0}); //1
-        cubeVertices.push_back({1.0, 1.0, 1.0}); //2
-        cubeVertices.push_back({-1.0, 1.0, 1.0}); //3
-        cubeVertices.push_back({-1.0, -1.0, -1.0}); //4
-        cubeVertices.push_back({1.0, -1.0, -1.0}); //5
-        cubeVertices.push_back({1.0, 1.0, -1.0}); //6
-        cubeVertices.push_back({-1.0, 1.0, -1.0}); //7
+        delete atlasFile;
+        delete imageFile;
 
-        std::vector<unsigned short> cubeIndices{
-		// back
-		7, 6, 5,
-		5, 4, 7,
-		// bottom
-		4, 5, 1,
-		1, 4, 0,
-		// right
-		1, 5, 6,
-		6, 2, 1,
-		// left
-		4, 0, 3,
-		3, 7, 4,
-		// top
-		3, 2, 6,
-		6, 7, 3,
-		// front
-		0, 1, 2,
-		2, 3, 0
-		};
+        // Load font
+        f = new Font();
+        const resourceFile* fontFile = Resources::getInstance()->loadCompressedFile("pressStart2P.fnt");
+        f->loadFont(fontFile);
+        delete fontFile;
 
-        go->loadGraphics(cubeVertices, cubeIndices);
-        go->setVisible(true);
-        go->setPosition({ 0.f, 0.f, 0.f});
-        w = 0.f;
+        // Load text shader
+        textSh = new Shader();
+        const resourceFile* tvs = Resources::getInstance()->loadCompressedFile("textShader.vert");
+        const resourceFile* tfs = Resources::getInstance()->loadCompressedFile("textShader.frag");
+        textSh->setShaderID(GraphicsUtils::loadShaders(tvs, tfs));
+        delete tvs;
+        delete tfs;
 
-        Graphics::getInstance()->addGraphicsObject("Cube", static_cast<GraphicsObjectGL*>(go));
+        // Create text
+        t = new Text();
+        t->initText("testText", f, textSh, "pressStart2P", atlas, -400, 200);  // baseline at center
+        t->setText("HELLO");
+        t->setVisible(true);
 
+        shader = new Shader();
 
-        ta = new TextureAtlas();
+        const resourceFile* vs =
+            Resources::getInstance()->loadCompressedFile("shaderNew2D.vert");
+        const resourceFile* fs =
+            Resources::getInstance()->loadCompressedFile("shaderNew2D.frag");
 
-        const resourceFile *rfMenuAtlas = Resources::getInstance()->loadCompressedFile("game.atlas");
-        const resourceFile *rfMenuImage = Resources::getInstance()->loadCompressedFile("game.png");
-        ta->loadTextureAtlas(rfMenuAtlas, rfMenuImage);
-        delete rfMenuImage;
-        delete rfMenuAtlas;
+        shader->setShaderID(GraphicsUtils::loadShaders(vs, fs));
 
-        sh = new Shader();
-        const resourceFile *rfVertShader = Resources::getInstance()->loadCompressedFile("shader.vert");
-        const resourceFile *rfFragShader = Resources::getInstance()->loadCompressedFile("shader.frag");
-        sh->setShaderID(GraphicsUtils::loadShaders(rfVertShader, rfFragShader));
-        if (!sh->getShaderID())
-            return;
+        delete vs;
+        delete fs;
 
-        delete rfVertShader;
-        delete rfFragShader;
 
         playerSprite = new Sprite();
         Animation *animation = new Animation();
@@ -90,158 +72,96 @@ namespace GGE
         frames.push_back("dogAnim7");
         frames.push_back("dogAnim8");
         frames.push_back("dogAnim9");
-        animation->loadFrames(ta, sh, 1.0/8, frames);
+        animation->loadFrames(atlas, shader, 1.0/8, frames);
         playerSprite->addAnimation("Idle", animation);
         playerSprite->setCurrentAnimationName("Idle", ANIM_LOOP_PINGPONG);
-        playerSprite->setShader(sh);
+        playerSprite->setShader(shader);
         playerSprite->setIsVisible(true);
         playerSprite->setEntity(gameModel->getPlayer());
-        Graphics::getInstance()->addSprite("test", playerSprite);
+//        Graphics::getInstance()->addSprite("test", playerSprite);
 
-        s2 = new Sprite();
-        s2->loadRegion("bone", ta);
-        s2->setShader(sh);
-        s2->setIsVisible(true);
-        s2->setX(-200);
-        s2->setY(300);
-        Graphics::getInstance()->addSprite("test2", s2);
 
-        exitButton = new Button();
-        Drawable *d = new Drawable();
-        d->loadRegion("exitButton", ta);
-        d->setShader(sh);
-        d->setIsVisible(true);
-        exitButton->setDrawable(d);
-        exitButton->setPosition(SCREEN_X/2 - exitButton->getDimension()->x/2,
-                            SCREEN_Y/2 - exitButton->getDimension()->y/2);
 
-        Graphics::getInstance()->addUIObject("Exit", exitButton);
 
-#if !defined(GGE_DESKTOP)
-        leftButton = new Button();
-        Drawable *ld = new Drawable();
-        ld->loadRegion("arrow", ta);
-        ld->setShader(sh);
-        ld->setIsVisible(true);
-        leftButton->setDrawable(ld);
-        leftButton->setPosition(-SCREEN_X/2 + 200,
-                                -SCREEN_Y/2 + 100);
+//
+//        quad = new Drawable();
+//        quad->loadRegion("dogAnim2", atlas);
+//
+//        quad->setX(0);
+//        quad->setY(0);
+//        quad->setScaleX( 1.0f);
+//        quad->setScaleY( 1.0f);
+//        quad->setZ(0);
+//        quad->setIsVisible(true);
+//        quad->setColor(new float [4] {1.0f, 1.0f, 1.0f, 1.0f});
+//        quad->setAlpha(1.0);
 
-        Graphics::getInstance()->addUIObject("Left", leftButton);
+        GraphicsManager* gm = GraphicsManager::getInstance();
+        gm->getCurrentBatch()->init(20);
 
-        rightButton = new Button();
-        Drawable *rd = new Drawable();
-        rd->loadRegion("arrow", ta);
-        rd->setShader(sh);
-        rd->setIsVisible(true);
-        rd->setRotation(180);
-        rightButton->setDrawable(rd);
-        rightButton->setPosition(-SCREEN_X/2 + 400,
-                                -SCREEN_Y/2 + 100);
-
-        Graphics::getInstance()->addUIObject("Right", rightButton);
-
-        jumpButton = new Button();
-        Drawable *jd = new Drawable();
-        jd->loadRegion("arrow", ta);
-        jd->setShader(sh);
-        jd->setIsVisible(true);
-        jd->setRotation(270);
-        jumpButton->setDrawable(jd);
-        jumpButton->setPosition(SCREEN_X/2 - 220,
-                                -SCREEN_Y/2 + 100);
-
-        Graphics::getInstance()->addUIObject("Jump", jumpButton);
-#endif
-
-        textSh = new Shader();
-        const resourceFile *rfTextVertShader = Resources::getInstance()->loadCompressedFile("textShader.vert");
-        const resourceFile *rfTextFragShader = Resources::getInstance()->loadCompressedFile("textShader.frag");
-        textSh->setShaderID(GraphicsUtils::loadShaders(rfTextVertShader, rfTextFragShader));
-
-        delete rfTextVertShader;
-        delete rfTextFragShader;
-
-        f = new Font();
-        const resourceFile *fontFile = Resources::getInstance()->loadCompressedFile("pressStart2P.fnt");
-        f->loadFont(fontFile);
-
-        t = new Text();
-        t->initText("Text", f, textSh, "pressStart2P", ta, 0, 0);
-        t->setText("nsaefOUGH BFSoyjua.,PfAf");
-        t->setPosition(-400, -100);
-        t->setScaleX(1.5);
-        t->setScaleY(1.5);
-        Graphics::getInstance()->addText(t->getName(), t);
-        t->setVisible(true);
-
-        delete fontFile;
+        // Configura pipeline de render 2D no gerenciador. A GameView não controla o ciclo GL.
+        gm->set2DPipeline(new Render2DPass(1920, 1080));
     }
 
     void GameView::step(float deltaTime)
     {
+        if (!shader)
+            return;
 
-        Point mouseCoord = OS::getInstance()->getMouseCoord();
-
-        playerSprite->setX(0);
-        playerSprite->setY(0);
-
-        w += 0.01;
-
-        go->setOrientation(Quaternion(0., 1., 0., w*100));
-
-        go->setScale(Vector3((float) sin(w), (float) sin(w), (float)sin(w)));
-
-        go->setPosition(Vector3((float) sin(w), go->getPosition().y, go->getPosition().z));
-
-        if (exitButton->isClicked(mouseCoord))
+        // === FASE 1: Atualizar estado do sprite (do model) ===
+        // (lê do model, atualiza posição/visibilidade/z)
+        if (!animationsPaused && playerSprite)
         {
-            OS::getInstance()->setRunning(false);
+            if (!playerSprite->getCurrentAnimationName().empty())
+            {
+                playerSprite->getCurrentAnimation()->update(deltaTime);
+            }
         }
-#if !defined(GGE_DESKTOP)
-            if (leftButton->isClicked(OS::getInstance()->getInputCoord(LEFT_HAND)))
-            {
-                InputSystem::getInstance()->keyPressed(GGE_LEFT);
-            } else {
-                InputSystem::getInstance()->keyReleased(GGE_LEFT);
-            }
-            if (rightButton->isClicked(OS::getInstance()->getInputCoord(LEFT_HAND)))
-            {
-                InputSystem::getInstance()->keyPressed(GGE_RIGHT);
-            } else {
-                InputSystem::getInstance()->keyReleased(GGE_RIGHT);
-            }
-            if (jumpButton->isClicked(OS::getInstance()->getInputCoord(RIGHT_HAND)))
-            {
-                InputSystem::getInstance()->keyPressed(GGE_UP);
-            } else {
-                InputSystem::getInstance()->keyReleased(GGE_UP);
-            }
-#endif
 
-        Graphics::getInstance()->doGraphics(deltaTime);
+        // === FASE 2: Renderizar (pipeline isolada) ===
+        std::vector<Drawable*> drawList;
+        Drawable* quad = nullptr;
 
+        if (playerSprite && !playerSprite->getCurrentAnimationName().empty())
+        {
+            quad = playerSprite->getCurrentAnimation()->getCurrentDrawable(
+                playerSprite->getAnimationPlayMode()
+            );
+        }
+        else if (playerSprite)
+        {
+            quad = reinterpret_cast<Drawable*>(playerSprite);
+        }
+
+        if (quad && quad->isVisible())
+            drawList.push_back(quad);
+
+        // Add text if visible - but render separately since it uses different shader
+//        if (t && t->isVisible())
+//            drawList.push_back(t);
+
+        // Enfileirar drawables no GraphicsManager.
+        GraphicsManager* gm = GraphicsManager::getInstance();
+        gm->clear2DDrawables();
+        for (Drawable* d : drawList)
+            gm->add2DDrawable(d);
+
+        // Delegar ao GraphicsManager a renderização real (pipeline + FBO).
+        gm->render2DDrawables(camera, *shader);
+
+        // Render text separately on top
+        if (t && t->isVisible())
+            gm->renderText(t, &camera);
     }
 
     void GameView::finishView()
     {
-
         delete playerSprite;
-        delete s2;
-        delete sh;
-        delete sh3D;
-        delete textSh;
-        delete ta;
+        delete shader;
+        delete atlas;
         delete f;
+        delete textSh;
         delete t;
-        delete go;
-#if !defined(GGE_DESKTOP)
-        delete leftButton;
-        delete rightButton;
-        delete jumpButton;
-#endif
-        delete exitButton;
-
     }
 
 }

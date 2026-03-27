@@ -6,4 +6,6 @@
 **/build
 /captures
 .externalNativeBuild
+.scannerwork
 **/IDEFiles
+plan/

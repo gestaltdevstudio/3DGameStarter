@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 2.6)
-project (Starter)
+cmake_minimum_required(VERSION 3.16...4.3)   # mínimo 3.16, máximo 4.3
+project(Starter)
 
 set(CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 

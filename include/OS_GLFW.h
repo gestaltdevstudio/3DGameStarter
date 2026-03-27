@@ -11,10 +11,13 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <map>
 
 #include "stb_image.h"
 #include "Definitions.h"
-#include "Graphics.h"
+#include "GraphicsUtils.h"
+#include "GraphicsManager.h"
+#include "InputSystem.h"
 
 namespace GGE {
     class Controller;

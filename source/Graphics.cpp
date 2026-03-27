@@ -116,6 +116,7 @@ namespace GGE
         glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_DEPTH_TEST);
 
 	}
 
@@ -227,8 +228,8 @@ namespace GGE
                                                                               (float) sprite->getY() * viewportSize.y / SCREEN_Y,
                                                                               0))
                 * glm::rotate((float)0.0, glm::vec3(0,0,1))
-                * glm::scale(glm::vec3((float) (sprite->isFlipedX() ? -1 : 1) * sprite->getScaleX() * drawable->getAtlasRegion()->width * viewportSize.x / SCREEN_X,
-                                       (float) (sprite->isFlipedY() ? -1 : 1) * sprite->getScaleY() * drawable->getAtlasRegion()->height * viewportSize.y / SCREEN_Y,
+                * glm::scale(glm::vec3((float) (sprite->isFlippedX() ? -1 : 1) * sprite->getScaleX() * drawable->getAtlasRegion()->width * viewportSize.x / SCREEN_X,
+                                       (float) (sprite->isFlippedY() ? -1 : 1) * sprite->getScaleY() * drawable->getAtlasRegion()->height * viewportSize.y / SCREEN_Y,
                                        0));
                 glm::mat4 mvp = projectionMatrix * viewMatrix * modelMatrix;
 
@@ -309,7 +310,8 @@ namespace GGE
                 GLuint mvpID = glGetUniformLocation(text->getShader()->getShaderID(), "MVP");
                 glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
 
-                text->printText();
+                // TODO: Legacy code — use GraphicsManager::renderText() instead
+                // text->printText();
                 glUseProgram(0);
             }
 
