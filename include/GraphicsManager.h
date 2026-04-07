@@ -4,18 +4,24 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <map>
 #include "Definitions.h"
+#include "GLPlatform.h"
+#include "Camera3D.h"
+#include "Drawable3D.h"
 #include "RendererBatch2D.h"
+#include "Renderer3D.h"
 #include "TextRenderer.h"
 
 namespace GGE
 {
 class Text;
 class Render2DPass;
+class Render3DPass;
 class RenderTarget;
 class Camera2D;
 class Shader;
-class Drawable;
+class Drawable2D;
 
 struct Viewport
 {
@@ -58,10 +64,18 @@ public:
 
     // render batch API (claro e nítido)
     void clear2DDrawables();
-    void add2DDrawable(Drawable* drawable);
+    void add2DDrawable(Drawable2D* drawable);
     void set2DPipeline(Render2DPass* pipeline);
     void render2DDrawables(const Camera2D& camera, Shader& shader, RenderTarget* target = nullptr);
     void renderText(Text* text, Camera2D* camera);
+    void render3DFrame();
+    void set3DPipeline(Render3DPass* pipeline);
+    void set3DCamera(const Camera3D& camera);
+    Camera3D& get3DCamera();
+    const Camera3D& get3DCamera() const;
+    void addGraphicsObject3D(const std::string& name, Drawable3D* object);
+    void removeGraphicsObject3D(const std::string& name);
+    const Renderer3D::FrameStats& get3DStats() const;
 
     // resize vindo do GLFW
     void onFramebufferResize(int w, int h);
@@ -74,8 +88,12 @@ public:
 private:
     RendererBatch2D batch;
     std::unique_ptr<Render2DPass> active2DPass;
-    std::vector<Drawable*> queued2DDrawables;
+    std::unique_ptr<Render3DPass> active3DPass;
+    std::vector<Drawable2D*> queued2DDrawables;
+    std::vector<Drawable3D*> queued3DObjects;
     TextRenderer textRenderer;
+    Camera3D camera3D;
+    std::map<std::string, Drawable3D*> graphicsObjects3D;
 
     GraphicsManager() = default;
 

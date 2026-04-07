@@ -1,4 +1,5 @@
 #include "../include/OS_GLFW.h"
+#include "../include/GraphicsManager.h"
 #if defined(__WIN32__)
 #include <algorithm>
 #endif

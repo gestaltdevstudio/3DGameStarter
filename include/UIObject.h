@@ -1,7 +1,7 @@
 #ifndef UIOBJECT_H_INCLUDED
 #define UIOBJECT_H_INCLUDED
 
-#include "Drawable.h"
+#include "Drawable2D.h"
 
 namespace GGE
 {
@@ -12,8 +12,8 @@ namespace GGE
         public:
             UIObject();
             virtual ~UIObject();
-            void setDrawable(Drawable *_drawable);
-            inline Drawable* getDrawable() { return drawable; }
+            void setDrawable(Drawable2D *_drawable);
+            inline Drawable2D* getDrawable() { return drawable; }
             inline void setPosition(int x, int y) { position->x = x; position->y = y;}
             inline void setDimension(int x, int y) { dimension->x = x; dimension->y = y;}
 
@@ -22,7 +22,7 @@ namespace GGE
 
 
         protected:
-            Drawable *drawable;
+            Drawable2D *drawable;
             Point *dimension;
             Point *position;
 

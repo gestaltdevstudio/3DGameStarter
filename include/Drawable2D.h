@@ -1,5 +1,5 @@
-#ifndef DRAWABLE_H_INCLUDED
-#define DRAWABLE_H_INCLUDED
+#ifndef DRAWABLE2D_H_INCLUDED
+#define DRAWABLE2D_H_INCLUDED
 
 #include "TextureAtlas.h"
 #include "Shader.h"
@@ -7,12 +7,12 @@
 namespace GGE
 {
 
-    class Drawable
+    class Drawable2D
     {
 
     public:
-        Drawable();
-        virtual ~Drawable();
+        Drawable2D();
+        virtual ~Drawable2D();
         void loadRegion(std::string regionName, TextureAtlas *_textureAtlas);
 
         inline float getX() { return x; };
@@ -70,4 +70,4 @@ namespace GGE
     };
 }
 
-#endif // DRAWABLE_H_INCLUDED
+#endif // DRAWABLE2D_H_INCLUDED

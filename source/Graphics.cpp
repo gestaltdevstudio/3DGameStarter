@@ -130,7 +130,7 @@ namespace GGE
 
 	void Graphics::onRender3D(float deltaTime)
     {
-        std::map<std::string, GraphicsObjectGL*>::iterator iter;
+        std::map<std::string, Drawable3D*>::iterator iter;
 
         projectionMatrix = glm::perspective(45.f, FIXED_ASPECT_RATIO, 0.1f, 100.0f);
         viewMatrix = glm::lookAt(
@@ -172,7 +172,7 @@ namespace GGE
 
         for (iter = graphicsObjects.begin(); iter != graphicsObjects.end(); ++iter)
         {
-            GraphicsObjectGL* go = (static_cast<GraphicsObjectGL*>(iter->second));
+            Drawable3D* go = iter->second;
             if (go->isVisible()) {
 
                 glUseProgram(go->getShader()->getShaderID());
@@ -211,7 +211,7 @@ namespace GGE
             if (sprite->isVisible()) {
 
 
-                Drawable *drawable;
+                Drawable2D *drawable;
                 if (!sprite->getCurrentAnimationName().empty())
                 {
                     if (!animationsPaused) {
@@ -221,7 +221,7 @@ namespace GGE
                 }
                 else
                 {
-                    drawable = reinterpret_cast<Drawable*>(sprite);
+                    drawable = reinterpret_cast<Drawable2D*>(sprite);
                 }
 
                 glm::mat4 modelMatrix = glm::translate(glm::mat4(), glm::vec3((float) sprite->getX() * viewportSize.x / SCREEN_X,
@@ -339,7 +339,7 @@ namespace GGE
         for (iter = uiObjects.begin(); iter != uiObjects.end(); ++iter)
         {
             UIObject *uiObject= reinterpret_cast<UIObject*>(iter->second);
-            Drawable *drawable = uiObject->getDrawable();
+            Drawable2D *drawable = uiObject->getDrawable();
             if (drawable->isVisible()) {
 
 
@@ -454,7 +454,7 @@ namespace GGE
         }
     }
 
-    void Graphics::addGraphicsObject(std::string objectName, GraphicsObjectGL *_object)
+    void Graphics::addGraphicsObject(std::string objectName, Drawable3D *_object)
     {
         graphicsObjects.insert(std::make_pair(objectName, _object));
     }

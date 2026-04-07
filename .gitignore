@@ -9,3 +9,5 @@
 .scannerwork
 **/IDEFiles
 plan/
+.cxx
+.vscode

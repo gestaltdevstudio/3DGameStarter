@@ -1,6 +1,5 @@
 #include "../include/RendererBatch2D.h"
 
-#include <glad/glad.h>
 #include <iostream>
 
 namespace GGE

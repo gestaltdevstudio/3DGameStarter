@@ -5,7 +5,7 @@
 #include <string>
 #include "TextureAtlas.h"
 #include "Shader.h"
-#include "Drawable.h"
+#include "Drawable2D.h"
 
 namespace GGE
 {
@@ -20,12 +20,12 @@ namespace GGE
 
 
             inline void update(float deltaTime) { elapsedTime += deltaTime; }
-            Drawable* getCurrentDrawable(AnimationPlayMode playMode);
+            Drawable2D* getCurrentDrawable(AnimationPlayMode playMode);
 
 
         protected:
             float frameDuration;
-            std::vector<Drawable*> frames;
+            std::vector<Drawable2D*> frames;
             TextureAtlas *textureAtlas;
             Shader *shader;
             float elapsedTime;

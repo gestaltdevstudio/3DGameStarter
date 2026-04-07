@@ -5,6 +5,25 @@
 #include <vector>
 #include <cstdint>
 #include <glm/glm.hpp>
+#if defined(__ANDROID__)
+#include <GLES/gl.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>
+#elif defined(__WIN32__)
+ #include "OS_GLFW.h"
+ #include <glad/glad.h>
+#elif __APPLE__
+ #include "TargetConditionals.h"
+ #if TARGET_OS_OSX
+  #include "OS_GLFW.h"
+  #include <glad/glad.h>
+ #else
+  #include "OS_iOS.h"
+ #endif
+#else
+ #include "OS_GLFW.h"
+ #include <glad/glad.h>
+#endif
 
 namespace GGE
 {

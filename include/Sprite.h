@@ -1,14 +1,14 @@
 #ifndef SPRITE_H_INCLUDED
 #define SPRITE_H_INCLUDED
 
-#include "Drawable.h"
+#include "Drawable2D.h"
 #include "Entity.h"
 #include "Animation.h"
 
 namespace GGE
 {
 
-    class Sprite : public Drawable
+    class Sprite : public Drawable2D
     {
         public:
             Sprite();

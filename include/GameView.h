@@ -8,7 +8,7 @@
 #include "Button.h"
 #include "GameModel.h"
 #include "Camera2D.h"
-#include "GraphicsObjectGL.h"
+#include "Drawable3D.h"
 
 namespace GGE
 {
@@ -38,6 +38,13 @@ namespace GGE
             bool animationsPaused;
 
             Camera2D camera;
+
+            Drawable3D* cube3D = nullptr;
+            float cubeAngle = 0.0f;
+
+            // Computa as UVs para as 6 faces do cubo a partir de uma região do atlas.
+            static std::vector<glm::vec2> buildCubeFaceUVs(
+                const AtlasRegion* region, float atlasW, float atlasH);
 
 #if !defined(GGE_DESKTOP)
             Button *leftButton;

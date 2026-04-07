@@ -1,9 +1,9 @@
-#include "../include/Drawable.h"
+#include "../include/Drawable2D.h"
 
 namespace GGE
 {
 
-    Drawable::Drawable()
+    Drawable2D::Drawable2D()
     {
         visible = false;
         scaleX = scaleY = 1.0f;
@@ -16,13 +16,13 @@ namespace GGE
 		alpha=1.0;
     }
 
-    Drawable::~Drawable()
+    Drawable2D::~Drawable2D()
     {
         if (uvbo)
 			glDeleteBuffers(1, &uvbo);
     }
 
-    void Drawable::loadRegion(std::string regionName, TextureAtlas *_textureAtlas)
+    void Drawable2D::loadRegion(std::string regionName, TextureAtlas *_textureAtlas)
     {
         if (_textureAtlas->regions.find(regionName) != _textureAtlas->regions.end())
         {

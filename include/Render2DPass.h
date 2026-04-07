@@ -3,6 +3,25 @@
 
 #include <vector>
 #include <memory>
+#if defined(__ANDROID__)
+#include <GLES/gl.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>
+#elif defined(__WIN32__)
+ #include "OS_GLFW.h"
+ #include <glad/glad.h>
+#elif __APPLE__
+ #include "TargetConditionals.h"
+ #if TARGET_OS_OSX
+  #include "OS_GLFW.h"
+  #include <glad/glad.h>
+ #else
+  #include "OS_iOS.h"
+ #endif
+#else
+ #include "OS_GLFW.h"
+ #include <glad/glad.h>
+#endif
 
 namespace GGE
 {
@@ -12,7 +31,7 @@ class TextureRenderTarget;
 class RenderTarget;
 class Camera2D;
 class Shader;
-class Drawable;
+class Drawable2D;
 
 // Render2DPass = pipeline de renderização 2D pronto para usar
 // Gerencia: FBO, pipeline, batch rendering, composição para tela
@@ -24,11 +43,11 @@ public:
 
     // Renderizar lista de drawables para o FBO
     void render(const Camera2D& camera, Shader& shader, 
-                const std::vector<Drawable*>& drawables);
+                const std::vector<Drawable2D*>& drawables);
 
     // (opcional) renderizar para target customizado
     void render(const Camera2D& camera, Shader& shader,
-                const std::vector<Drawable*>& drawables,
+                const std::vector<Drawable2D*>& drawables,
                 RenderTarget* target);
 
     // Copiar FBO para tela (blit)
@@ -37,10 +56,10 @@ public:
     TextureRenderTarget* getTarget() const { return target.get(); }
 
 private:
-    std::unique_ptr<Render2DPipeline> pipeline;
-    std::unique_ptr<TextureRenderTarget> target;
     int width;
     int height;
+    std::unique_ptr<Render2DPipeline> pipeline;
+    std::unique_ptr<TextureRenderTarget> target;
 };
 
 }

@@ -1,13 +1,10 @@
 #include "../include/GraphicsManager.h"
 #include "../include/GraphicsUtils.h"
 #include "../include/Render2DPass.h"
+#include "../include/Render3DPass.h"
 #include "../include/TextureRenderTarget.h"
-#include "../include/RenderTarget.h"
-#include "../include/Camera2D.h"
-#include "../include/Shader.h"
-#include "../include/Drawable.h"
 
-#include <glad/glad.h>
+#include <algorithm>
 
 namespace GGE
 {
@@ -74,7 +71,7 @@ void GraphicsManager::clear2DDrawables()
     queued2DDrawables.clear();
 }
 
-void GraphicsManager::add2DDrawable(Drawable* drawable)
+void GraphicsManager::add2DDrawable(Drawable2D* drawable)
 {
     if (!drawable)
         return;
@@ -114,6 +111,92 @@ void GraphicsManager::render2DDrawables(const Camera2D& camera, Shader& shader, 
 void GraphicsManager::renderText(Text* text, Camera2D* camera)
 {
     textRenderer.render(text, camera);
+}
+
+void GraphicsManager::set3DPipeline(Render3DPass* pipeline)
+{
+    if (!pipeline)
+        return;
+
+    active3DPass.reset(pipeline);
+}
+
+void GraphicsManager::set3DCamera(const Camera3D& camera)
+{
+    camera3D = camera;
+}
+
+Camera3D& GraphicsManager::get3DCamera()
+{
+    return camera3D;
+}
+
+const Camera3D& GraphicsManager::get3DCamera() const
+{
+    return camera3D;
+}
+
+void GraphicsManager::addGraphicsObject3D(const std::string& name, Drawable3D* object)
+{
+    if (!object)
+        return;
+
+    graphicsObjects3D[name] = object;
+}
+
+void GraphicsManager::removeGraphicsObject3D(const std::string& name)
+{
+    std::map<std::string, Drawable3D*>::iterator it = graphicsObjects3D.find(name);
+    if (it == graphicsObjects3D.end())
+        return;
+
+    graphicsObjects3D.erase(it);
+}
+
+void GraphicsManager::render3DFrame()
+{
+    if (currentViewport.width > 0 && currentViewport.height > 0)
+    {
+        const float aspect = (float)currentViewport.width / (float)currentViewport.height;
+        camera3D.setPerspective(camera3D.getFovDegrees(), aspect, camera3D.getNearPlane(), camera3D.getFarPlane());
+    }
+
+    queued3DObjects.clear();
+    for (std::map<std::string, Drawable3D*>::iterator it = graphicsObjects3D.begin();
+         it != graphicsObjects3D.end();
+         ++it)
+    {
+        if (it->second)
+            queued3DObjects.push_back(it->second);
+    }
+
+    std::stable_sort(queued3DObjects.begin(), queued3DObjects.end(),
+        [](Drawable3D* left, Drawable3D* right)
+        {
+            if (!left || !right)
+                return left < right;
+
+            return left->getRenderOrder() < right->getRenderOrder();
+        });
+
+    if (active3DPass)
+    {
+        active3DPass->render(camera3D, queued3DObjects);
+        return;
+    }
+
+    Render3DPass localPass;
+    localPass.render(camera3D, queued3DObjects);
+}
+
+const Renderer3D::FrameStats& GraphicsManager::get3DStats() const
+{
+    static const Renderer3D::FrameStats emptyStats;
+
+    if (!active3DPass)
+        return emptyStats;
+
+    return active3DPass->getLastStats();
 }
 
 void GraphicsManager::onFramebufferResize(int w, int h)

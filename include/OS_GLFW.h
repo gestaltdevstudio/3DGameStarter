@@ -16,7 +16,6 @@
 #include "stb_image.h"
 #include "Definitions.h"
 #include "GraphicsUtils.h"
-#include "GraphicsManager.h"
 #include "InputSystem.h"
 
 namespace GGE {

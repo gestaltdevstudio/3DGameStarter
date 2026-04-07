@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16...4.3)   # m�nimo 3.16, m�ximo 4.3
+cmake_minimum_required(VERSION 3.16...4.3)   # m�nimo 3.16, m�ximo 4.3
 project(Starter)
 
 set(CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -25,6 +25,8 @@ endif (MSVC)
 
 include_directories(${CPP_DIR}/include ${CPP_DIR}/include/external/libzip ${CPP_DIR}/include/external)
 file(GLOB SOURCES "${CPP_DIR}/main.cpp" "${CPP_DIR}/source/*.cpp" "${CPP_DIR}/source/external/*.c")
+# GraphicsObjectGL.cpp é um alias legado de Drawable3D.cpp; excluir do build CMake.
+list(REMOVE_ITEM SOURCES "${CPP_DIR}/source/GraphicsObjectGL.cpp")
 
 if (UNIX AND NOT APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
@@ -111,6 +113,13 @@ add_executable(Starter MACOSX_BUNDLE ${SOURCES} ${RSC_FILES})
 else()
 add_executable(Starter ${SOURCES})
 endif()
+
+# Mantém shaders/atlas/texturas sempre sincronizados no diretório de execução.
+add_custom_target(sync_conf ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CPP_DIR}/conf" "${CMAKE_CURRENT_BINARY_DIR}/conf"
+  COMMENT "Syncing runtime assets to build/conf"
+)
+add_dependencies(Starter sync_conf)
 
 if (APPLE)
   target_link_libraries (Starter glfw ${COCOA_LIBRARY} ${OPENGL_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY} ${OPENAL_LIBRARY} z bz2 libzip libvorbisfile libvorbis libogg)  

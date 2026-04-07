@@ -4,13 +4,13 @@
 #include "Font.h"
 #include "TextureAtlas.h"
 #include "Shader.h"
-#include "Drawable.h"
+#include "Drawable2D.h"
 
 namespace GGE
 {
     class Font;
 
-    class Text : public Drawable
+    class Text : public Drawable2D
     {
         friend class TextRenderer;
 

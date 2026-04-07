@@ -8,7 +8,7 @@ namespace GGE
 
 class Camera2D;
 class Shader;
-class Drawable;
+class Drawable2D;
 
 class RenderTarget;
 
@@ -18,8 +18,8 @@ public:
     virtual ~RenderPipeline() = default;
 
     virtual void beginFrame(const Camera2D& camera, Shader& shader, RenderTarget* target = nullptr) = 0;
-    virtual void draw(Drawable* drawable) = 0;
-    virtual void draw(const std::vector<Drawable*>& drawables) = 0;
+    virtual void draw(Drawable2D* drawable) = 0;
+    virtual void draw(const std::vector<Drawable2D*>& drawables) = 0;
     virtual void endFrame() = 0;
 };
 

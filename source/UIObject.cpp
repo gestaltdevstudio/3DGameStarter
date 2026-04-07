@@ -24,7 +24,7 @@ namespace GGE
             free(dimension);
     }
 
-    void UIObject::setDrawable( Drawable *_drawable)
+    void UIObject::setDrawable( Drawable2D *_drawable)
     {
         if (_drawable)
         {

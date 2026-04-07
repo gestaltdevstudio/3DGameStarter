@@ -1,5 +1,9 @@
 #include "../include/GraphicsUtils.h"
 
+#if defined(__ANDROID__)
+#include "../include/OS_ANDROID.h"
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -48,42 +52,64 @@ namespace GGE
         GLint Result = GL_FALSE;
         int InfoLogLength;
 
-        // Compile Vertex Shader
-        GLchar* tmpV = static_cast< GLchar*>(vertexFileBuffer->file);
-        tmpV[vertexFileBuffer->size-1] = '\0';
-        GLchar const* VertexSourcePointer = tmpV;
+        // Plataforma: GLES 3.0 (Android) usa "#version 300 es" + precision;
+        // Desktop OpenGL usa "#version 330 core".
+        // A primeira linha dos .vert/.frag é sempre "#version ..." — ela é stripada
+        // e substituda pelo preamble correto via glShaderSource com 2 strings.
+#if defined(__ANDROID__)
+        static const char* kGLSLPreamble =
+            "#version 300 es\n"
+            "precision highp float;\n"
+            "precision highp int;\n";
+#else
+        static const char* kGLSLPreamble = "#version 330 core\n";
+#endif
 
-        glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
+        auto stripVersion = [](const GLchar* src) -> const GLchar* {
+            const GLchar* nl = strchr(src, '\n');
+            return nl ? nl + 1 : src;  // retorna tudo depois da primeira linha
+        };
+
+        // Compile Vertex Shader
+        GLchar* tmpV = static_cast<GLchar*>(vertexFileBuffer->file);
+        tmpV[vertexFileBuffer->size - 1] = '\0';
+        const GLchar* vertSources[2] = { kGLSLPreamble, stripVersion(tmpV) };
+
+        glShaderSource(VertexShaderID, 2, vertSources, NULL);
         glCompileShader(VertexShaderID);
 
         // Check Vertex Shader
         glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
         glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-        if ( InfoLogLength > 0 ){
-            std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
+        if (InfoLogLength > 0) {
+            std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
             glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+#if defined(__ANDROID__)
+            LOGI("Vertex shader: %s", &VertexShaderErrorMessage[0]);
+#else
             printf("%s\n", &VertexShaderErrorMessage[0]);
-//            LOGI("Error GL: %s" , &VertexShaderErrorMessage[0]);
+#endif
         }
 
-
-
         // Compile Fragment Shader
-        GLchar* tmpF = static_cast< GLchar*>(fragmentFileBuffer->file);
-        tmpF[fragmentFileBuffer->size-1] = '\0';
-        GLchar const * FragmentSourcePointer = tmpF;
+        GLchar* tmpF = static_cast<GLchar*>(fragmentFileBuffer->file);
+        tmpF[fragmentFileBuffer->size - 1] = '\0';
+        const GLchar* fragSources[2] = { kGLSLPreamble, stripVersion(tmpF) };
 
-        glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
+        glShaderSource(FragmentShaderID, 2, fragSources, NULL);
         glCompileShader(FragmentShaderID);
 
         // Check Fragment Shader
         glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
         glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-        if ( InfoLogLength > 0 ){
-            std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
+        if (InfoLogLength > 0) {
+            std::vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
             glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
+#if defined(__ANDROID__)
+            LOGI("Fragment shader: %s", &FragmentShaderErrorMessage[0]);
+#else
             printf("%s\n", &FragmentShaderErrorMessage[0]);
-//            LOGI("Error GL: %s" , &FragmentShaderErrorMessage[0]);
+#endif
         }
 
         // Link the program

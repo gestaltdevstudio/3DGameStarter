@@ -3,7 +3,7 @@
 #include "../include/RendererBatch2D.h"
 #include "../include/Camera2D.h"
 #include "../include/Shader.h"
-#include "../include/Drawable.h"
+#include "../include/Drawable2D.h"
 #include "../include/GraphicsUtils.h"
 
 namespace GGE
@@ -33,7 +33,7 @@ void Render2DPipeline::beginFrame(const Camera2D& camera, Shader& shader, Render
     shader.setMat4("u_ViewProj", GraphicsUtils::buildViewProj(camera));
 }
 
-void Render2DPipeline::draw(Drawable* drawable)
+void Render2DPipeline::draw(Drawable2D* drawable)
 {
     if (!drawable || !drawable->isVisible())
         return;
@@ -71,9 +71,9 @@ void Render2DPipeline::draw(Drawable* drawable)
     gm->submit(inst);
 }
 
-void Render2DPipeline::draw(const std::vector<Drawable*>& drawables)
+void Render2DPipeline::draw(const std::vector<Drawable2D*>& drawables)
 {
-    for (Drawable* d : drawables)
+    for (Drawable2D* d : drawables)
         draw(d);
 }
 

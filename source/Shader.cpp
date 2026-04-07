@@ -1,5 +1,4 @@
 #include "../include/Shader.h"
-#include <glad/glad.h>   // ou glew, dependendo do teu setup
 #include <iostream>
 
 namespace GGE

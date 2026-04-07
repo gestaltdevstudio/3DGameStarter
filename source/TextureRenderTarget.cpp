@@ -1,5 +1,4 @@
 #include "../include/TextureRenderTarget.h"
-#include <glad/glad.h>
 
 namespace GGE
 {

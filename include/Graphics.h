@@ -29,12 +29,12 @@
 #include "Text.h"
 #include "Button.h"
 #include "GraphicsObject.h"
-#include "GraphicsObjectGL.h"
+#include "Drawable3D.h"
 
 namespace GGE {
 
     class GraphicsObject;
-    class GraphicsObjectGL;
+    class Drawable3D;
     class Text;
 
 
@@ -75,7 +75,7 @@ namespace GGE {
 
 		inline Point 	getViewportSize() { return viewportSize; };
 
-        void            addGraphicsObject(std::string name, GraphicsObjectGL* _object);
+        void            addGraphicsObject(std::string name, Drawable3D* _object);
         void            removeGraphicsObject(std::string name);
 	private:
 
@@ -89,7 +89,7 @@ namespace GGE {
 		std::map<std::string, UIObject*>        	uiObjects;
 		glm::mat4                               	projectionMatrix;
 		glm::mat4                               	viewMatrix;
-		std::map<std::string, GraphicsObjectGL*> 	graphicsObjects;
+		std::map<std::string, Drawable3D*> 	graphicsObjects;
 
 		bool                                    	animationsPaused;
 

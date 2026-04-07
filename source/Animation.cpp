@@ -16,7 +16,7 @@ namespace GGE
     {
         for (unsigned int j=0;j<frames.size();j++)
         {
-                Drawable* drawable = frames[j];
+                Drawable2D* drawable = frames[j];
                 frames[j] = 0;
                 delete drawable;
         }
@@ -29,7 +29,7 @@ namespace GGE
         textureAtlas = _textureAtlas;
         frameDuration = _frameDuration;
         for (const std::string& name : _framesNames) {
-            Drawable* drawable = new Drawable();
+            Drawable2D* drawable = new Drawable2D();
             drawable->loadRegion(name, textureAtlas);
             drawable->setShader(shader);
             drawable->setIsVisible(true); // frames individuais devem ser visíveis
@@ -43,7 +43,7 @@ namespace GGE
 
     }
 
-    Drawable* Animation::getCurrentDrawable(AnimationPlayMode playMode)
+    Drawable2D* Animation::getCurrentDrawable(AnimationPlayMode playMode)
     {
         unsigned int frameIndex = (int) (elapsedTime / frameDuration);
         switch(playMode)

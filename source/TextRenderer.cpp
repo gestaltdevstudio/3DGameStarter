@@ -1,7 +1,6 @@
 #include "../include/TextRenderer.h"
 #include "../include/Text.h"
 #include "../include/Camera2D.h"
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 namespace GGE

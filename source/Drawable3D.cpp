@@ -60,12 +60,28 @@ namespace GGE
     }
 
     // E.G. Normal Shader
+    void Drawable3D::updateUV(std::vector<glm::vec2> uvs)
+    {
+        if (!getMesh())
+            return;
+        getMesh()->updateUVBuffer(uvs);
+    }
+
     void Drawable3D::loadGraphics(std::vector<Vector3> _vertices, std::vector<unsigned short> _indices)
     {
         if (!getMesh())
             return;
 
         getMesh()->setIndexedGeometry(_vertices, _indices);
+    }
+
+    void Drawable3D::loadGraphics(std::vector<Vector3> _vertices, std::vector<unsigned short> _indices,
+                                  std::vector<glm::vec2> _uvs)
+    {
+        if (!getMesh())
+            return;
+
+        getMesh()->setIndexedGeometry(_vertices, _indices, _uvs);
     }
 
     // E.G. Normal Shader
@@ -261,11 +277,22 @@ namespace GGE
 
         glm::mat4 Drawable3D::buildModelMatrix() const
         {
-                return glm::translate(glm::mat4(), glm::vec3((float) position.x,
-                                                                                                         (float) position.y,
-                                                                                                         (float) position.z))
-                         * glm::rotate(orientation.w, glm::vec3(orientation.x, orientation.y, orientation.z))
-                         * glm::scale(glm::vec3(scale.x, scale.y, scale.z));
+                const glm::mat4 translation = glm::translate(
+                    glm::mat4(1.0f),
+                    glm::vec3((float)position.x, (float)position.y, (float)position.z));
+
+                glm::mat4 rotation(1.0f);
+                const glm::vec3 axis((float)orientation.x, (float)orientation.y, (float)orientation.z);
+                if (glm::length2(axis) > 0.0f)
+                {
+                    rotation = glm::toMat4(glm::angleAxis(orientation.w, glm::normalize(axis)));
+                }
+
+                const glm::mat4 scaling = glm::scale(
+                    glm::mat4(1.0f),
+                    glm::vec3((float)scale.x, (float)scale.y, (float)scale.z));
+
+                return translation * rotation * scaling;
         }
 
 }

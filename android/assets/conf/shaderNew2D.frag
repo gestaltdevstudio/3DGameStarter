@@ -1,13 +1,13 @@
 #version 330 core
 
-uniform sampler2D u_Textures[8];
-uniform int       u_UseTexture;
-
-in  vec2 v_UV;
-in  vec4 v_Color;
+in vec2 v_TexCoord;
+in vec4 v_Color;
 flat in int v_TexIndex;
 
-out vec4 color;
+out vec4 FragColor;
+
+uniform sampler2D u_Textures[8];
+
 
 vec4 sampleTexture(int index, vec2 uv)
 {
@@ -21,23 +21,23 @@ vec4 sampleTexture(int index, vec2 uv)
         case 5: return texture(u_Textures[5], uv);
         case 6: return texture(u_Textures[6], uv);
         case 7: return texture(u_Textures[7], uv);
-        default: return vec4(1.0, 0.0, 1.0, 1.0); // magenta = debug
+        default: return vec4(1, 0, 1, 1);
     }
 }
 
 void main()
 {
-    if (u_UseTexture == 1)
-    {
-        vec4 texColor = sampleTexture(v_TexIndex, v_UV);
-        color = vec4(texColor.rgb * v_Color.rgb, texColor.a * v_Color.a);
-    }
-    else
-    {
-        color = v_Color;
-    }
+    vec4 texColor = sampleTexture(v_TexIndex, v_TexCoord);
 
-    if (color.a < 0.01)
+    // Blend de cor (ex: piscar vermelho)
+    FragColor = texColor * v_Color;
+//    FragColor = vec4(1,0,0,1);
+//    FragColor = v_Color;
+
+
+
+    // Corte simples de alpha (opcional)
+    if (FragColor.a < 0.01)
         discard;
 }
 
