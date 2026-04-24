@@ -265,7 +265,7 @@ namespace GGE
         if (cube3D)
         {
             cubeAngle += deltaTime * 4.2f;
-            cube3D->setOrientation(Quaternion(0.0f, 1.0f, 0.0f, cubeAngle));
+            cube3D->setOrientation(Quaternion(0.0f, 1.0f, 0.0f, glm::radians(cubeAngle)));
         }
 
         // 1. Renderizar camada 2D primeiro (sprite dog + texto) no backbuffer via FBO
