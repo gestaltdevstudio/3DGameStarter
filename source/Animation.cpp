@@ -50,7 +50,7 @@ namespace GGE
         {
             case ANIM_NORMAL:
 
-                frameIndex = std::min((int)frames.size() - 1, (int) frameIndex);
+                frameIndex = (std::min)((int)frames.size() - 1, (int) frameIndex);
 
             break;
             case ANIM_LOOP:

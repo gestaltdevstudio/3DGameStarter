@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16...4.3)   # m�nimo 3.16, m�ximo 4.3
+cmake_minimum_required(VERSION 3.16...4.3)   # min 3.16, max 4.3
 project(Starter)
 
 set(CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -18,10 +18,9 @@ IF(APPLE)
 ENDIF (APPLE)
 
  
-if (MSVC)
-  file(COPY ${CPP_DIR}/libsWin/libogg-0.dll ${CPP_DIR}/libsWin/LibVorbis.dll
-        ${CPP_DIR}/libsWin/libZip.dll ${CPP_DIR}/libsWin/OpenAL32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR})      
-endif (MSVC)
+if (MSVC AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+  message(FATAL_ERROR "Windows build must be x64. Configure with: cmake -S . -B build_x64 -A x64")
+endif ()
 
 include_directories(${CPP_DIR}/include ${CPP_DIR}/include/external/libzip ${CPP_DIR}/include/external)
 file(GLOB SOURCES "${CPP_DIR}/main.cpp" "${CPP_DIR}/source/*.cpp" "${CPP_DIR}/source/external/*.c")
@@ -33,11 +32,10 @@ if (UNIX AND NOT APPLE)
 endif ()
  
 if (MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__WIN32__")
-endif (MSVC)
-
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -no-pie -DGGE_DESKTOP")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__WIN32__ -DGGE_DESKTOP")
+else ()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -no-pie -DGGE_DESKTOP")
+endif ()
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 ADD_LIBRARY(glfw STATIC IMPORTED)       
@@ -59,7 +57,7 @@ elseif (UNIX)
 endif ()        
    
 if (MSVC)
-  SET_TARGET_PROPERTIES(libzip PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsWin/debug/libZip.lib) 
+  SET_TARGET_PROPERTIES(libzip PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsWin/debug/zip.lib) 
 endif (MSVC)
 
 if (APPLE)               
@@ -70,9 +68,14 @@ elseif (UNIX)
   SET_TARGET_PROPERTIES(libvorbisfile PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsLinux/debug/libvorbisfile.a)    
 endif ()
 
+if (MSVC)
+  ADD_LIBRARY(libvorbisfile STATIC IMPORTED)
+  SET_TARGET_PROPERTIES(libvorbisfile PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsWin/debug/vorbisfile.lib)
+endif (MSVC)
+
 if (MSVC)              
   ADD_LIBRARY(zlib STATIC IMPORTED)   
-  SET_TARGET_PROPERTIES(zlib PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsWin/debug/zlib1.lib)    
+  SET_TARGET_PROPERTIES(zlib PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsWin/debug/zsd.lib)    
 endif (MSVC)
 
 
@@ -84,7 +87,7 @@ elseif (UNIX)
 endif ()
 
 if (MSVC)
-  SET_TARGET_PROPERTIES(libvorbis PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsWin/debug/LibVorbis.lib) 
+  SET_TARGET_PROPERTIES(libvorbis PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsWin/debug/vorbis.lib) 
 endif (MSVC)
 
 ADD_LIBRARY(libopenal STATIC IMPORTED)   
@@ -105,7 +108,7 @@ elseif (UNIX)
 endif ()
 
 if (MSVC)
-SET_TARGET_PROPERTIES(libogg PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsWin/debug/libogg-0.lib) 
+SET_TARGET_PROPERTIES(libogg PROPERTIES IMPORTED_LOCATION ${CPP_DIR}/libsWin/debug/ogg.lib) 
 endif (MSVC)              
 
 if (APPLE)
@@ -114,12 +117,22 @@ else()
 add_executable(Starter ${SOURCES})
 endif()
 
-# Mantém shaders/atlas/texturas sempre sincronizados no diretório de execução.
-add_custom_target(sync_conf ALL
-  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CPP_DIR}/conf" "${CMAKE_CURRENT_BINARY_DIR}/conf"
-  COMMENT "Syncing runtime assets to build/conf"
-)
-add_dependencies(Starter sync_conf)
+# Keep runtime assets and Windows DLLs beside the executable for Debug/Release runs.
+add_custom_command(TARGET Starter POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${CPP_DIR}/conf
+          $<TARGET_FILE_DIR:Starter>/conf)
+
+if (MSVC)
+  add_custom_command(TARGET Starter POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CPP_DIR}/libsWin/ogg.dll
+            ${CPP_DIR}/libsWin/vorbis.dll
+            ${CPP_DIR}/libsWin/vorbisfile.dll
+            ${CPP_DIR}/libsWin/zip.dll
+            ${CPP_DIR}/libsWin/OpenAL32.dll
+            $<TARGET_FILE_DIR:Starter>)
+endif (MSVC)
 
 if (APPLE)
   target_link_libraries (Starter glfw ${COCOA_LIBRARY} ${OPENGL_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY} ${OPENAL_LIBRARY} z bz2 libzip libvorbisfile libvorbis libogg)  
@@ -131,5 +144,6 @@ elseif (UNIX)
 endif ()                  
 
 if (MSVC)
-  target_link_libraries (Starter glu32.lib opengl32.lib libzip libvorbis libopenal libogg zlib glfw )  
+  target_compile_definitions(Starter PRIVATE ZIP_STATIC)
+  target_link_libraries (Starter glu32.lib opengl32.lib libzip libvorbisfile libvorbis libopenal libogg zlib glfw )  
 endif (MSVC)
