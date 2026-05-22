@@ -9,11 +9,14 @@ namespace GGE
 {
 
 Render3DPass::Render3DPass()
-    : pipeline(std::make_unique<Render3DPipeline>())
+    : pipeline(new Render3DPipeline())
 {
 }
 
-Render3DPass::~Render3DPass() = default;
+Render3DPass::~Render3DPass()
+{
+    delete pipeline;
+}
 
 void Render3DPass::render(const Camera3D& camera, const std::vector<Drawable3D*>& objects)
 {

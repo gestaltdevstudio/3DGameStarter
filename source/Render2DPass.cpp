@@ -9,18 +9,22 @@ namespace GGE
 {
 
 Render2DPass::Render2DPass(int width, int height)
-    : width(width), height(height),
-      pipeline(std::make_unique<Render2DPipeline>()),
-      target(std::make_unique<TextureRenderTarget>(width, height))
+        : width(width), height(height),
+            pipeline(new Render2DPipeline()),
+            target(new TextureRenderTarget(width, height))
 {
 }
 
-Render2DPass::~Render2DPass() = default;
+Render2DPass::~Render2DPass()
+{
+        delete pipeline;
+        delete target;
+}
 
 void Render2DPass::render(const Camera2D& camera, Shader& shader,
                           const std::vector<Drawable2D*>& drawables)
 {
-    render(camera, shader, drawables, target.get());
+    render(camera, shader, drawables, target);
 }
 
 void Render2DPass::render(const Camera2D& camera, Shader& shader,

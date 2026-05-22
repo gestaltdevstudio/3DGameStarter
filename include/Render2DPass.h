@@ -2,7 +2,6 @@
 #define RENDER2DPASS_H_INCLUDED
 
 #include <vector>
-#include <memory>
 #if defined(__ANDROID__)
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
@@ -53,13 +52,13 @@ public:
     // Copiar FBO para tela (blit)
     void presentToScreen();
 
-    TextureRenderTarget* getTarget() const { return target.get(); }
+    TextureRenderTarget* getTarget() const { return target; }
 
 private:
     int width;
     int height;
-    std::unique_ptr<Render2DPipeline> pipeline;
-    std::unique_ptr<TextureRenderTarget> target;
+    Render2DPipeline* pipeline = nullptr;
+    TextureRenderTarget* target = nullptr;
 };
 
 }

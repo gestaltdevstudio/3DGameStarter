@@ -82,7 +82,9 @@ void GraphicsManager::set2DPipeline(Render2DPass* pipeline)
 {
     if (!pipeline)
         return;
-    active2DPass.reset(pipeline);
+
+    delete active2DPass;
+    active2DPass = pipeline;
 }
 
 void GraphicsManager::render2DDrawables(const Camera2D& camera, Shader& shader, RenderTarget* target)
@@ -118,7 +120,8 @@ void GraphicsManager::set3DPipeline(Render3DPass* pipeline)
     if (!pipeline)
         return;
 
-    active3DPass.reset(pipeline);
+    delete active3DPass;
+    active3DPass = pipeline;
 }
 
 void GraphicsManager::set3DCamera(const Camera3D& camera)
@@ -141,16 +144,16 @@ void GraphicsManager::addGraphicsObject3D(const std::string& name, Drawable3D* o
     if (!object)
         return;
 
-    graphicsObjects3D[name] = object;
+    registered3DObjects[name] = object;
 }
 
 void GraphicsManager::removeGraphicsObject3D(const std::string& name)
 {
-    std::map<std::string, Drawable3D*>::iterator it = graphicsObjects3D.find(name);
-    if (it == graphicsObjects3D.end())
+    std::map<std::string, Drawable3D*>::iterator it = registered3DObjects.find(name);
+    if (it == registered3DObjects.end())
         return;
 
-    graphicsObjects3D.erase(it);
+    registered3DObjects.erase(it);
 }
 
 void GraphicsManager::render3DFrame()
@@ -162,8 +165,8 @@ void GraphicsManager::render3DFrame()
     }
 
     queued3DObjects.clear();
-    for (std::map<std::string, Drawable3D*>::iterator it = graphicsObjects3D.begin();
-         it != graphicsObjects3D.end();
+    for (std::map<std::string, Drawable3D*>::iterator it = registered3DObjects.begin();
+         it != registered3DObjects.end();
          ++it)
     {
         if (it->second)

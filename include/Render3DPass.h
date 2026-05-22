@@ -2,7 +2,6 @@
 #define RENDER3DPASS_H_INCLUDED
 
 #include "Drawable3D.h"
-#include <memory>
 #include <vector>
 
 #include "Renderer3D.h"
@@ -26,7 +25,7 @@ public:
     const Renderer3D::FrameStats& getLastStats() const;
 
 private:
-    std::unique_ptr<Render3DPipeline> pipeline;
+    Render3DPipeline* pipeline = nullptr;
 };
 
 }

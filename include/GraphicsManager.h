@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <string>
-#include <memory>
 #include <map>
 #include "Definitions.h"
 #include "GLPlatform.h"
@@ -87,13 +86,13 @@ public:
 
 private:
     RendererBatch2D batch;
-    std::unique_ptr<Render2DPass> active2DPass;
-    std::unique_ptr<Render3DPass> active3DPass;
+    Render2DPass* active2DPass = nullptr;
+    Render3DPass* active3DPass = nullptr;
     std::vector<Drawable2D*> queued2DDrawables;
     std::vector<Drawable3D*> queued3DObjects;
     TextRenderer textRenderer;
     Camera3D camera3D;
-    std::map<std::string, Drawable3D*> graphicsObjects3D;
+    std::map<std::string, Drawable3D*> registered3DObjects;
 
     GraphicsManager() = default;
 
