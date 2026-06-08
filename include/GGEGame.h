@@ -14,7 +14,7 @@
 #else
  #include "OS_GLFW.h"
 #endif  
-#if defined(__WIN32__)
+#if defined(_WIN64)
 #include <windows.h>
 #else
 #include<sys/time.h>

@@ -1,5 +1,5 @@
 #include "../include/GameModel.h"
-#if defined(__WIN32__)
+#if defined(_WIN64)
 #include <algorithm>
 #endif
 

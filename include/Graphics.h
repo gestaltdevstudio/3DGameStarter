@@ -8,9 +8,9 @@
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
-#elif defined(__WIN32__)
- #include "OS_GLFW.h"
- #include <glad/glad.h>
+#elif defined(_WIN64)
+#include "OS_GLFW.h"
+#include <glad/glad.h>
 #elif __APPLE__
  #include "TargetConditionals.h"
  #if TARGET_OS_OSX

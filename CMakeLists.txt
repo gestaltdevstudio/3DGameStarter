@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.16...4.3)   # min 3.16, max 4.3
 project(Starter)
 
+set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "Disable Wayland" FORCE)
+set(GLFW_BUILD_X11 ON CACHE BOOL "Enable X11" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
 set(CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 file(COPY ${CPP_DIR}/conf DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -28,11 +34,13 @@ file(GLOB SOURCES "${CPP_DIR}/main.cpp" "${CPP_DIR}/source/*.cpp" "${CPP_DIR}/so
 list(REMOVE_ITEM SOURCES "${CPP_DIR}/source/GraphicsObjectGL.cpp")
 
 if (UNIX AND NOT APPLE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "Disable Wayland support" FORCE)
+  set(GLFW_BUILD_X11 ON CACHE BOOL "Enable X11 support" FORCE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -DGGE_LINUX")
 endif ()
  
 if (MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__WIN32__ -DGGE_DESKTOP")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGGE_DESKTOP")
 else ()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -no-pie -DGGE_DESKTOP")
 endif ()
@@ -140,7 +148,7 @@ if (APPLE)
 set_source_files_properties(${RSC_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/conf)
 
 elseif (UNIX)
-  target_link_libraries (Starter glfw GL X11 Xxf86vm Xinerama Xcursor Xrandr dl libzip libvorbisfile libvorbis libopenal libogg z)  
+  target_link_libraries (Starter PRIVATE libzip libvorbisfile libvorbis libopenal libogg PUBLIC glfw GL X11 Xxf86vm Xinerama Xcursor Xrandr dl z)  
 endif ()                  
 
 if (MSVC)

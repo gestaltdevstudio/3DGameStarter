@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#if defined (__WIN32__)
+#if defined(_WIN64)
 #include <windows.h>
 #endif
 
@@ -72,6 +72,7 @@ namespace GGE {
             bool            running;
             bool            paused;
             bool            fullScreen;
+            bool            waylandBackend;
             void findJoysticks();
 			GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
             static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);

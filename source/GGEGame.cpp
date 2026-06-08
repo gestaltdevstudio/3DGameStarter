@@ -36,14 +36,13 @@ namespace GGE
         nowTime = OS::getInstance()->getTime();
         deltaTime = nowTime - lastTime;
         lastTime = nowTime;
+
+        // Pump events every frame so focus and visibility state can update.
+        OS::getInstance()->checkInputEvent();
+
         checkFocused();
-        if (focused)
-        {
-            OS::getInstance()->checkInputEvent();
-            activeScreen->render(deltaTime);
-            
-            OS::getInstance()->swapBuffer();
-        }
+        activeScreen->render(deltaTime);
+        OS::getInstance()->swapBuffer();
         
     }
     

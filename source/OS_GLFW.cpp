@@ -1,6 +1,6 @@
 #include "../include/OS_GLFW.h"
 #include "../include/GraphicsManager.h"
-#if defined(__WIN32__)
+#if defined(_WIN64)
 #include <algorithm>
 #endif
 #include <cstring>
@@ -16,11 +16,41 @@ namespace GGE
 
 	OS::OS()
 	{
+        waylandBackend = false;
         glfwSetErrorCallback(error_callback);
+#if defined(__linux__)
+        // The platform hint must be set before glfwInit.
+        // GGE_GLFW_PLATFORM is optional override: x11 or wayland.
+        // Default behavior is auto so GLFW chooses the best available backend.
+        const char* requestedPlatform = getenv("GGE_GLFW_PLATFORM");
+        if (requestedPlatform && strcmp(requestedPlatform, "wayland") == 0)
+        {
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
+        }
+        else if (requestedPlatform && strcmp(requestedPlatform, "x11") == 0)
+        {
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+        }
+        else
+        {
+            glfwInitHint(GLFW_PLATFORM, GLFW_ANY_PLATFORM);
+        }
+#endif
         if( !glfwInit() )
         {
             alert( "Error", "Failed to initialize window manager!" );
         }
+#if defined(__linux__)
+        const int selectedPlatform = glfwGetPlatform();
+        waylandBackend = (selectedPlatform == GLFW_PLATFORM_WAYLAND);
+        const char* requestedLabel = requestedPlatform ? requestedPlatform : "auto(default)";
+        fprintf(stderr, "GLFW: %s | requested=%s | selected platform=%d | x11=%d | wayland=%d\n",
+        glfwGetVersionString(),
+        requestedLabel,
+        selectedPlatform,
+        glfwPlatformSupported(GLFW_PLATFORM_X11),
+        glfwPlatformSupported(GLFW_PLATFORM_WAYLAND));
+#endif
 
         keyConversion.insert(std::make_pair(GLFW_KEY_UP, GGE_UP));
         keyConversion.insert(std::make_pair(GLFW_KEY_DOWN, GGE_DOWN));
@@ -64,6 +94,13 @@ namespace GGE
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#if defined(__linux__)
+    if (waylandBackend)
+    {
+        // Wayland compositors use app-id for window identity and title integration.
+        glfwWindowHintString(GLFW_WAYLAND_APP_ID, "com.ggestudio.starter");
+    }
+#endif
 #if __APPLE__
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
@@ -75,7 +112,7 @@ namespace GGE
 		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
-#if defined(__WIN32__)
+#if defined(_WIN64)
 		window = glfwCreateWindow(mode->width, mode->height, windowName.c_str(), monitor, NULL);
 #else
 		window = glfwCreateWindow(SCREEN_X, SCREEN_Y, windowName.c_str(), NULL, NULL);
@@ -84,6 +121,8 @@ namespace GGE
             alert( "Error", "Failed to create Window!.\n" );
             glfwTerminate();
         } else {
+
+            glfwSetWindowTitle(window, windowName.c_str());
 
 
             glfwSetJoystickCallback(joystick_callback);
@@ -102,9 +141,33 @@ namespace GGE
 
             glfwSwapInterval(1);
 
-#if !defined(__WIN32__)
+#if !defined(_WIN64)
             fullScreen = false;
-            toggleFullScreen();
+            if (waylandBackend)
+            {
+                if (_fullScreen)
+                {
+                    GLFWmonitor* fsMonitor = glfwGetPrimaryMonitor();
+                    const GLFWvidmode* fsMode = glfwGetVideoMode(fsMonitor);
+                    glfwSetWindowMonitor(window, fsMonitor, 0, 0,
+                                         fsMode->width, fsMode->height, fsMode->refreshRate);
+                    fullScreen = true;
+                }
+                glfwShowWindow(window);
+                glfwFocusWindow(window);
+            }
+            else
+            {
+                toggleFullScreen();
+            }
+#endif
+
+#if defined(__linux__)
+        fprintf(stderr, "Window: visible=%d focused=%d maximized=%d fullscreen=%d\n",
+                    glfwGetWindowAttrib(window, GLFW_VISIBLE),
+                    glfwGetWindowAttrib(window, GLFW_FOCUSED),
+            glfwGetWindowAttrib(window, GLFW_MAXIMIZED),
+            glfwGetWindowMonitor(window) != NULL);
 #endif
 			resizeWindow();
 
@@ -124,13 +187,14 @@ namespace GGE
     {
 
 		glfwSwapBuffers(window);
-		glfwPollEvents();
         fflush(stdout);
     }
 
     void OS::checkInputEvent()
     {
         int button_count;
+
+        glfwPollEvents();
 
 		for (int joy = GLFW_JOYSTICK_1; joy <= NUMBER_OF_JOYSTICKS; joy++)
 		{
@@ -204,7 +268,7 @@ namespace GGE
 
     int OS::alert( const char *lpCaption, const char *lpText )
     {
-#if defined (__WIN32__)
+#if defined(_WIN64)
         return ::MessageBox( NULL, lpText, lpCaption, MB_OK );
 #else
         fprintf( stderr, "Message: '%s', Detail: '%s'\n", lpCaption, lpText );
@@ -386,65 +450,95 @@ namespace GGE
 
     void OS::toggleFullScreen()
     {
-		if (fullScreen)
-		{
-			if (windowedSize.x == 0)
-			{
-				windowedSize.x = restoreWidth;
-				windowedSize.y = restoreHeight;
-				windowedPosition.x = 100;
-				windowedPosition.y = 100;
-			}
-			glfwSetWindowMonitor(window, NULL,
-				windowedPosition.x, windowedPosition.y,
-				windowedSize.x, windowedSize.y, 0);
-		}
-		else
-		{
-			glfwGetWindowPos(window, &windowedPosition.x, &windowedPosition.y);
-			glfwGetWindowSize(window, &windowedSize.x, &windowedSize.y);
-			GLFWmonitor* monitor = getCurrentMonitor(window);
-			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-			glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-		}
+
+        if (fullScreen)
+        {
+            if (windowedSize.x == 0)
+            {
+                windowedSize.x = restoreWidth;
+                windowedSize.y = restoreHeight;
+                windowedPosition.x = 100;
+                windowedPosition.y = 100;
+            }
+
+            if (waylandBackend)
+            {
+                // Wayland has no global window coordinates; position is ignored.
+                glfwSetWindowMonitor(window, NULL, 0, 0,
+                                     windowedSize.x, windowedSize.y, 0);
+            }
+            else
+            {
+                glfwSetWindowMonitor(window, NULL,
+                                     windowedPosition.x, windowedPosition.y,
+                                     windowedSize.x, windowedSize.y, 0);
+            }
+        }
+        else
+        {
+            if (!waylandBackend)
+            {
+                glfwGetWindowPos(window, &windowedPosition.x, &windowedPosition.y);
+            }
+            else if (windowedPosition.x == 0 && windowedPosition.y == 0)
+            {
+                windowedPosition.x = 100;
+                windowedPosition.y = 100;
+            }
+
+            glfwGetWindowSize(window, &windowedSize.x, &windowedSize.y);
+            GLFWmonitor* monitor = waylandBackend ? glfwGetPrimaryMonitor() : getCurrentMonitor(window);
+            const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+            glfwSetWindowMonitor(window, monitor, 0, 0,
+                                 mode->width, mode->height, mode->refreshRate);
+        }
 
         fullScreen = !fullScreen;
     }
 
-	GLFWmonitor* OS::getCurrentMonitor(GLFWwindow *window)
-	{
-		int nmonitors, i;
-		int wx, wy, ww, wh;
-		int mx, my, mw, mh;
-		int overlap, bestoverlap;
-		GLFWmonitor *bestmonitor;
-		GLFWmonitor **monitors;
-		const GLFWvidmode *mode;
+    GLFWmonitor* OS::getCurrentMonitor(GLFWwindow *window)
+    {
+#if defined(__linux__)
+        if (waylandBackend)
+        {
+            return glfwGetPrimaryMonitor();
+        }
+#endif
 
-		bestoverlap = 0;
-		bestmonitor = NULL;
+        int nmonitors, i;
+        int wx, wy, ww, wh;
+        int mx, my, mw, mh;
+        int overlap, bestoverlap;
+        GLFWmonitor *bestmonitor;
+        GLFWmonitor **monitors;
+        const GLFWvidmode *mode;
 
-		glfwGetWindowPos(window, &wx, &wy);
-		glfwGetWindowSize(window, &ww, &wh);
-		monitors = glfwGetMonitors(&nmonitors);
+        bestoverlap = 0;
+        bestmonitor = NULL;
 
-		for (i = 0; i < nmonitors; i++) {
-			mode = glfwGetVideoMode(monitors[i]);
-			glfwGetMonitorPos(monitors[i], &mx, &my);
-			mw = mode->width;
-			mh = mode->height;
+        glfwGetWindowPos(window, &wx, &wy);
+        glfwGetWindowSize(window, &ww, &wh);
+        monitors = glfwGetMonitors(&nmonitors);
 
-			overlap =
-				std::max(0, std::min(wx + ww, mx + mw) - std::max(wx, mx)) *
-				std::max(0, std::min(wy + wh, my + mh) - std::max(wy, my));
+        for (i = 0; i < nmonitors; i++)
+        {
+            mode = glfwGetVideoMode(monitors[i]);
+            glfwGetMonitorPos(monitors[i], &mx, &my);
+            mw = mode->width;
+            mh = mode->height;
 
-			if (bestoverlap < overlap) {
-				bestoverlap = overlap;
-				bestmonitor = monitors[i];
-			}
-		}
+            overlap =
+                std::max(0, std::min(wx + ww, mx + mw) - std::max(wx, mx)) *
+                std::max(0, std::min(wy + wh, my + mh) - std::max(wy, my));
 
-		return bestmonitor;
-	}
+            if (bestoverlap < overlap)
+            {
+                bestoverlap = overlap;
+                bestmonitor = monitors[i];
+            }
+        }
+
+        return bestmonitor;
+    }
 
 }

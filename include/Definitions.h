@@ -2,7 +2,7 @@
 #define DEFINITIONS_H_INCLUDED
 
 
-#if !defined(__WIN32__)
+#if !defined(_WIN64)
 #include<unistd.h>
 #endif
 
@@ -43,7 +43,7 @@
 
 #define NUMBER_OF_JOYSTICKS 4
 
-#if defined(__WIN32__)
+#if defined(_WIN64)
 // winuser.h doesn't define it...
 #define VK_A 0x41
 #define VK_W 0x57
